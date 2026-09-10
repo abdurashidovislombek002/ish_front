@@ -93,7 +93,7 @@ export default function RegisterPage() {
     clearError()
     try {
       const payload = {
-        role: 'company',
+        role: 'company_owner',
         email: companyForm.email,
         password: companyForm.password,
         companyId: companyMode === 'select' ? companyForm.companyId : null,
