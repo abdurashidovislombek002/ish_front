@@ -21,6 +21,7 @@ export default function CompanyDashboardPage() {
   const [selectedJobId, setSelectedJobId] = useState(null)
   const [selectedJob, setSelectedJob] = useState(emptyJob)
   const [loading, setLoading] = useState(true)
+  const [workersCount, setWorkersCount] = useState(0)
   const [applicationsLoading, setApplicationsLoading] = useState(false)
   const [error, setError] = useState('')
   const [actionError, setActionError] = useState('')
@@ -42,9 +43,10 @@ export default function CompanyDashboardPage() {
   }, [])
 
   const loadMeta = useCallback(async () => {
-    const [rolesRes, catRes] = await Promise.allSettled([
+    const [rolesRes, catRes, workersRes] = await Promise.allSettled([
       api.get('/roles'),
       api.get('/categories'),
+      api.get('/my-workers'),
     ])
     if (rolesRes.status === 'fulfilled') {
       const r = rolesRes.value.data
@@ -54,6 +56,9 @@ export default function CompanyDashboardPage() {
       const c = catRes.value.data
       const list = Array.isArray(c) ? c : c.categories || []
       setCategories(list.map((x) => (typeof x === 'string' ? x : x.name)).filter(Boolean))
+    }
+    if (workersRes.status === 'fulfilled') {
+      setWorkersCount(Number(workersRes.value.data?.count || 0))
     }
   }, [])
 
@@ -116,6 +121,7 @@ export default function CompanyDashboardPage() {
       setSuccessMsg(status === 'accept' ? 'Nomzod qabul qilindi' : 'Nomzod rad etildi')
       setTimeout(() => setSuccessMsg(''), 3000)
       loadApplications(selectedJob)
+      loadJobs()
     } catch (err) {
       setActionError(err.response?.data?.message || 'Amal bajarilmadi')
     }
@@ -123,6 +129,11 @@ export default function CompanyDashboardPage() {
 
   const totalApplications = jobs.reduce(
     (sum, j) => sum + (Number(j.applicationsCount || j.applications?.length || 0)),
+    0
+  )
+
+  const totalWorkers = jobs.reduce(
+    (sum, j) => sum + (j.applications?.filter((a) => a.status === 'accepted').length || 0),
     0
   )
 
@@ -141,7 +152,7 @@ export default function CompanyDashboardPage() {
                   {user?.companyName || 'Kompaniya paneli'}
                 </h1>
                 <p className="text-primary-100 text-sm">
-                  {jobs.length} ta e'lon • {totalApplications} ta ariza
+                  {jobs.length} ta e'lon • {totalApplications} ta ariza • {totalWorkers} ta ishchi • {workersCount} ta ishchi
                 </p>
               </div>
             </div>
@@ -156,6 +167,21 @@ export default function CompanyDashboardPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid sm:grid-cols-3 gap-4 -mt-6 mb-8 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-sm p-5">
+            <p className="text-3xl font-bold text-primary-600">{jobs.length}</p>
+            <p className="text-sm text-slate-500 mt-1">Ta e'lon</p>
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm p-5">
+            <p className="text-3xl font-bold text-amber-500">{totalApplications}</p>
+            <p className="text-sm text-slate-500 mt-1">Ta ariza</p>
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm p-5">
+            <p className="text-3xl font-bold text-green-600">{totalWorkers}</p>
+            <p className="text-sm text-slate-500 mt-1">Ta ishchi</p>
+          </div>
+        </div>
+
         {successMsg && (
           <div className="mb-4 bg-green-50 border border-green-200 rounded-xl p-4 text-sm text-green-700 animate-fade-in flex items-center gap-2">
             <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
