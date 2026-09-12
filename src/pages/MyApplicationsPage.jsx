@@ -48,6 +48,8 @@ export default function MyApplicationsPage() {
     (a) => a.status === 'pending' || a.status === 'registered'
   ).length
 
+  const working = applications.filter((a) => a.status === 'accepted' || a.status === 'approved' || a.status === 'registered')
+
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700">
@@ -61,6 +63,34 @@ export default function MyApplicationsPage() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && <ErrorMessage message={error} />}
+
+        {!loading && working.length > 0 && (
+          <div className="mb-6 bg-green-50 border border-green-200 rounded-2xl p-5 animate-fade-in">
+            <h2 className="font-semibold text-green-800 flex items-center gap-2">
+              <span>✅ Mening ishlarim</span>
+              <span className="text-xs font-normal text-green-600">{working.length} ta</span>
+            </h2>
+            <div className="mt-3 space-y-2">
+              {working.map((app) => {
+                const job = app.job || {}
+                const company = job.company || app.company || {}
+                return (
+                  <div key={app.id || app._id} className="flex items-center justify-between gap-3 bg-white rounded-xl px-4 py-3">
+                    <div className="min-w-0">
+                      <p className="font-medium text-slate-900 truncate">{job.title || 'Vakansiya'}</p>
+                      <p className="text-sm text-slate-500 truncate">{company.name}</p>
+                    </div>
+                    {app.role && (
+                      <span className="shrink-0 px-2.5 py-1 rounded-lg bg-primary-50 text-primary-600 text-xs font-semibold">
+                        Rol: {app.role}
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <LoadingSpinner text="Arizalar yuklanmoqda..." />

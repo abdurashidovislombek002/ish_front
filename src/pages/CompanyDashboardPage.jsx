@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import api from '../api/axios'
 import useAuthStore from '../store/useAuthStore'
 import CompanyJobFormModal from '../components/CompanyJobFormModal'
+import WorkersModal from '../components/WorkersModal'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorMessage from '../components/ErrorMessage'
 
@@ -22,6 +23,9 @@ export default function CompanyDashboardPage() {
   const [selectedJob, setSelectedJob] = useState(emptyJob)
   const [loading, setLoading] = useState(true)
   const [workersCount, setWorkersCount] = useState(0)
+  const [workers, setWorkers] = useState([])
+  const [workersLoading, setWorkersLoading] = useState(false)
+  const [showWorkers, setShowWorkers] = useState(false)
   const [applicationsLoading, setApplicationsLoading] = useState(false)
   const [error, setError] = useState('')
   const [actionError, setActionError] = useState('')
@@ -58,7 +62,9 @@ export default function CompanyDashboardPage() {
       setCategories(list.map((x) => (typeof x === 'string' ? x : x.name)).filter(Boolean))
     }
     if (workersRes.status === 'fulfilled') {
-      setWorkersCount(Number(workersRes.value.data?.count || 0))
+      const w = workersRes.value.data
+      setWorkersCount(Number(w?.count || 0))
+      setWorkers(Array.isArray(w?.workers) ? w.workers : [])
     }
   }, [])
 
@@ -132,11 +138,6 @@ export default function CompanyDashboardPage() {
     0
   )
 
-  const totalWorkers = jobs.reduce(
-    (sum, j) => sum + (j.applications?.filter((a) => a.status === 'accepted').length || 0),
-    0
-  )
-
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
@@ -152,16 +153,34 @@ export default function CompanyDashboardPage() {
                   {user?.companyName || 'Kompaniya paneli'}
                 </h1>
                 <p className="text-primary-100 text-sm">
-                  {jobs.length} ta e'lon • {totalApplications} ta ariza • {totalWorkers} ta ishchi • {workersCount} ta ishchi
+                  {jobs.length} ta e'lon • {totalApplications} ta ariza • {workersCount} ta ishchi
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => setShowForm(true)}
-              className="bg-white text-primary-600 font-semibold px-5 py-2.5 rounded-xl text-sm hover:shadow-lg transition-shadow"
-            >
-              ➕ Yangi e'lon
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setShowWorkers(true)
+                  setWorkersLoading(true)
+                  api.get('/my-workers')
+                    .then(({ data }) => {
+                      setWorkers(Array.isArray(data?.workers) ? data.workers : [])
+                      setWorkersCount(Number(data?.count || 0))
+                    })
+                    .catch(() => setWorkers([]))
+                    .finally(() => setWorkersLoading(false))
+                }}
+                className="bg-white/20 text-white font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-white/30 transition-colors"
+              >
+                👥 Ishchilar ({workersCount})
+              </button>
+              <button
+                onClick={() => setShowForm(true)}
+                className="bg-white text-primary-600 font-semibold px-5 py-2.5 rounded-xl text-sm hover:shadow-lg transition-shadow"
+              >
+                ➕ Yangi e'lon
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -177,7 +196,7 @@ export default function CompanyDashboardPage() {
             <p className="text-sm text-slate-500 mt-1">Ta ariza</p>
           </div>
           <div className="bg-white rounded-2xl shadow-sm p-5">
-            <p className="text-3xl font-bold text-green-600">{totalWorkers}</p>
+            <p className="text-3xl font-bold text-green-600">{workersCount}</p>
             <p className="text-sm text-slate-500 mt-1">Ta ishchi</p>
           </div>
         </div>
@@ -298,6 +317,13 @@ export default function CompanyDashboardPage() {
         onClose={() => setShowForm(false)}
         onSaved={loadJobs}
         categories={categories}
+      />
+
+      <WorkersModal
+        open={showWorkers}
+        onClose={() => setShowWorkers(false)}
+        workers={workers}
+        loading={workersLoading}
       />
     </div>
   )
