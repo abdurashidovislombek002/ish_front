@@ -32,6 +32,7 @@ export default function RegisterPage() {
   const [skillInput, setSkillInput] = useState('')
 
   const [companyForm, setCompanyForm] = useState({
+    ownerName: '',
     companyId: '',
     companyName: '',
     industry: '',
@@ -76,6 +77,7 @@ export default function RegisterPage() {
       const payload = new FormData()
       if (seekForm.cv) payload.append('cv', seekForm.cv)
       payload.append('role', 'seeker')
+      payload.append('name', `${seekForm.firstName} ${seekForm.lastName}`.trim())
       payload.append('firstName', seekForm.firstName)
       payload.append('lastName', seekForm.lastName)
       payload.append('phone', seekForm.phone)
@@ -94,6 +96,7 @@ export default function RegisterPage() {
     try {
       const payload = {
         role: 'company_owner',
+        name: companyForm.ownerName.trim(),
         email: companyForm.email,
         password: companyForm.password,
         companyId: companyMode === 'select' ? companyForm.companyId : null,
@@ -302,9 +305,10 @@ export default function RegisterPage() {
               )}
 
               <div className="grid sm:grid-cols-2 gap-4">
+                <Input label="Ism" name="ownerName" required placeholder="Eganing ismi" value={companyForm.ownerName} onChange={(e) => setCompanyForm({ ...companyForm, ownerName: e.target.value })} />
                 <Input label="Email" type="email" required placeholder="kompaniya@example.com" value={companyForm.email} onChange={(e) => setCompanyForm({ ...companyForm, email: e.target.value })} />
-                <Input label="Parol" type="password" required placeholder="••••••••" value={companyForm.password} onChange={(e) => setCompanyForm({ ...companyForm, password: e.target.value })} />
               </div>
+              <Input label="Parol" type="password" name="password" required placeholder="••••••••" value={companyForm.password} onChange={(e) => setCompanyForm({ ...companyForm, password: e.target.value })} />
 
               <button type="submit" disabled={loading} className="w-full btn-primary py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-60">
                 {loading ? 'Ro\'yxatdan o\'tilmoqda...' : 'Ro\'yxatdan o\'tish'}
