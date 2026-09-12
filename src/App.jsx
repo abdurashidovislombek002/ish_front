@@ -11,7 +11,7 @@ import CompanyDashboardPage from './pages/CompanyDashboardPage'
 function NavigateToRole() {
   const user = useAuthStore((s) => s.user)
   if (!user) return <Navigate to="/login" replace />
-  return <Navigate to={user.role === 'company' ? '/dashboard' : '/'} replace />
+  return <Navigate to={user.role === 'company_owner' ? '/dashboard' : '/'} replace />
 }
 
 export default function App() {
@@ -42,7 +42,7 @@ export default function App() {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute role="company">
+              <ProtectedRoute role="company_owner">
                 <CompanyDashboardPage />
               </ProtectedRoute>
             }

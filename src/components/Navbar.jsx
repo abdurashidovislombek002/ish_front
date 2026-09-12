@@ -20,7 +20,7 @@ export default function Navbar() {
   }
 
   const links = user
-    ? user.role === 'company'
+    ? user.role === 'company_owner'
       ? [
           { to: '/dashboard', label: 'Dashboard' },
         ]
@@ -34,7 +34,7 @@ export default function Navbar() {
     <nav className="bg-white/90 backdrop-blur sticky top-0 z-40 border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to={user ? (user.role === 'company' ? '/dashboard' : '/') : '/'} className="flex items-center gap-2 group">
+          <Link to={user ? (user.role === 'company_owner' ? '/dashboard' : '/') : '/'} className="flex items-center gap-2 group">
             <span className="w-9 h-9 rounded-xl btn-primary flex items-center justify-center text-white font-bold text-lg group-hover:scale-105 transition-transform">IT</span>
             <span className="hidden sm:block text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">IshTopish.uz</span>
           </Link>
@@ -51,7 +51,7 @@ export default function Navbar() {
             {user ? (
               <>
                 <span className="text-xs font-medium px-3 py-1 rounded-full bg-slate-100 text-slate-600">
-                  {user.role === 'company' ? '🏢 Kompaniya' : '👤 Qidiruvchi'}
+                  {user.role === 'company_owner' ? '🏢 Kompaniya egasi' : '👤 Qidiruvchi'}
                 </span>
                 <span className="text-sm font-medium text-slate-700">{user.name || user.companyName || user.email}</span>
                 <button

@@ -14,7 +14,7 @@ export default function LoginPage() {
     clearError()
     try {
       const user = await login(form.email, form.password)
-      navigate(user.role === 'company' ? '/dashboard' : '/', { replace: true })
+      navigate(user.role === 'company_owner' ? '/dashboard' : '/', { replace: true })
     } catch (err) {
       // error store'da saqlanadi
     }

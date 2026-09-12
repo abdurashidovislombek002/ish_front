@@ -10,7 +10,7 @@ export default function ProtectedRoute({ children, role }) {
   }
 
   if (role && user.role !== role) {
-    return <Navigate to={user.role === 'company' ? '/dashboard' : '/'} replace />
+    return <Navigate to={user.role === 'company_owner' ? '/dashboard' : '/'} replace />
   }
 
   return children
