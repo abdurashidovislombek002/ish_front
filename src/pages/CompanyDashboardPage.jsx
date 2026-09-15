@@ -18,6 +18,7 @@ export default function CompanyDashboardPage() {
   const { user, logout } = useAuthStore()
   const [jobs, setJobs] = useState([])
   const [roles, setRoles] = useState([])
+  const [rolesLoading, setRolesLoading] = useState(false)
   const [categories, setCategories] = useState([])
   const [selectedJobId, setSelectedJobId] = useState(null)
   const [selectedJob, setSelectedJob] = useState(emptyJob)
@@ -47,11 +48,13 @@ export default function CompanyDashboardPage() {
   }, [])
 
   const loadMeta = useCallback(async () => {
+    const companyId = user?.companyId || user?.company_id
+    setRolesLoading(true)
     const [rolesRes, catRes, workersRes] = await Promise.allSettled([
-      api.get('/roles'),
+      companyId ? api.get(`/companies/${companyId}/roles`) : Promise.reject(new Error('companyId topilmadi')),
       api.get('/categories'),
       api.get('/my-workers'),
-    ])
+    ]).finally(() => setRolesLoading(false))
     if (rolesRes.status === 'fulfilled') {
       const r = rolesRes.value.data
       setRoles(Array.isArray(r) ? r : r.roles || [])
@@ -66,7 +69,7 @@ export default function CompanyDashboardPage() {
       setWorkersCount(Number(w?.count || 0))
       setWorkers(Array.isArray(w?.workers) ? w.workers : [])
     }
-  }, [])
+  }, [user?.companyId])
 
   useEffect(() => {
     loadJobs()
@@ -110,7 +113,7 @@ export default function CompanyDashboardPage() {
     if (!roleName) return
     setActionError('')
     try {
-      await api.post(`/applications/${applicationId}/role`, { role: roleName })
+      await api.put(`/applications/${applicationId}`, { role: roleName })
       setSuccessMsg('Rol muvaffaqiyatli tayinlandi')
       setTimeout(() => setSuccessMsg(''), 3000)
       loadApplications(selectedJob)
@@ -300,6 +303,7 @@ export default function CompanyDashboardPage() {
                     key={app.id || app._id}
                     app={app}
                     roles={roles}
+                    rolesLoading={rolesLoading}
                     roleValue={roleSelections[app.id || app._id] || app.role || ''}
                     onRoleChange={handleRoleChange}
                     onRoleApply={handleRoleApply}
@@ -329,7 +333,7 @@ export default function CompanyDashboardPage() {
   )
 }
 
-function ApplicationCard({ app, roles, roleValue, onRoleChange, onRoleApply, onStatusChange }) {
+function ApplicationCard({ app, roles, rolesLoading, roleValue, onRoleChange, onRoleApply, onStatusChange }) {
   const applicant = app.applicant || app.seeker || {}
   const name = applicant.name || `${applicant.firstName || ''} ${applicant.lastName || ''}`.trim() || 'Noma\'lum nomzod'
   const status = app.status
@@ -412,7 +416,7 @@ function ApplicationCard({ app, roles, roleValue, onRoleChange, onRoleApply, onS
               className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 bg-white"
             >
               <option value="">
-                {roles.length ? 'Rol tanlang...' : 'Rollar yuklanmoqda...'}
+                {rolesLoading ? 'Rollar yuklanmoqda...' : roles.length ? 'Rol tanlang...' : 'Rollar topilmadi'}
               </option>
               {roles.map((r) => {
                 const label = typeof r === 'string' ? r : r.name
