@@ -8,6 +8,8 @@ import ErrorMessage from '../components/ErrorMessage'
 
 const CV_BASE = '/uploads/cvs/'
 
+const DEFAULT_ROLES = ['Admin', 'Ishchi', 'Yordamchi', 'Uborshik']
+
 const emptyJob = {
   id: null,
   applications: [],
@@ -17,7 +19,7 @@ const emptyJob = {
 export default function CompanyDashboardPage() {
   const { user, logout } = useAuthStore()
   const [jobs, setJobs] = useState([])
-  const [roles, setRoles] = useState([])
+  const [roles, setRoles] = useState(DEFAULT_ROLES)
   const [rolesLoading, setRolesLoading] = useState(false)
   const [categories, setCategories] = useState([])
   const [selectedJobId, setSelectedJobId] = useState(null)
@@ -57,7 +59,8 @@ export default function CompanyDashboardPage() {
     ]).finally(() => setRolesLoading(false))
     if (rolesRes.status === 'fulfilled') {
       const r = rolesRes.value.data
-      setRoles(Array.isArray(r) ? r : r.roles || [])
+      const fetched = Array.isArray(r) ? r : r.roles || []
+      if (fetched.length > 0) setRoles(fetched)
     }
     if (catRes.status === 'fulfilled') {
       const c = catRes.value.data
